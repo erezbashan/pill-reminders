@@ -14,11 +14,6 @@ struct ContentView: View {
                 .font(.system(size: 80))
                 .foregroundColor(.red)
             
-            Text("Blood Thinner Tracker")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .multilineTextAlignment(.center)
-            
             if lastTakenDate > 0 {
                 let date = Date(timeIntervalSince1970: lastTakenDate)
                 Text("Last taken:\n\(date.formatted(date: .abbreviated, time: .shortened))")
