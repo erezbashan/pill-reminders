@@ -95,19 +95,23 @@ struct ContentView: View {
         // Clear all previous reminders
         center.removeAllPendingNotificationRequests()
         
+        let customSound = UNNotificationSound(named: UNNotificationSoundName(rawValue: "alarm.wav"))
+        
         // Schedule new reminders starting at 10 hours, up to 60 hours
         // iOS allows a maximum of 64 pending notifications per app.
         for hourOffset in 10...60 {
             let content = UNMutableNotificationContent()
-            content.sound = .default
             
             if hourOffset < 12 {
+                content.sound = .default
                 content.title = "Pill Reminder Approaching"
                 content.body = "You need to take your blood thinner in \(12 - hourOffset) hour(s)."
             } else if hourOffset == 12 {
+                content.sound = customSound
                 content.title = "Time to Take Your Pill!"
                 content.body = "It has been exactly 12 hours. Please take your blood thinner now."
             } else {
+                content.sound = customSound
                 content.title = "OVERDUE: Pill Reminder"
                 content.body = "You are \(hourOffset - 12) hour(s) late taking your blood thinner! Please take it immediately."
             }
@@ -132,18 +136,22 @@ struct ContentView: View {
         let center = UNUserNotificationCenter.current()
         center.removeAllPendingNotificationRequests()
         
+        let customSound = UNNotificationSound(named: UNNotificationSoundName(rawValue: "alarm.wav"))
+        
         // Schedule test reminders starting in 5 seconds, then 10s, 15s
         for (index, timeOffset) in [5, 10, 15].enumerated() {
             let content = UNMutableNotificationContent()
-            content.sound = .default
             
             if index == 0 {
+                content.sound = .default
                 content.title = "Pill Reminder Approaching (TEST)"
                 content.body = "This is a test. Your pill is due soon!"
             } else if index == 1 {
+                content.sound = customSound
                 content.title = "Time to Take Your Pill! (TEST)"
                 content.body = "Please take your blood thinner now."
             } else {
+                content.sound = customSound
                 content.title = "OVERDUE: Pill Reminder (TEST)"
                 content.body = "You are late taking your blood thinner!"
             }
