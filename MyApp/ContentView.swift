@@ -16,10 +16,12 @@ struct ContentView: View {
             
             if lastTakenDate > 0 {
                 let date = Date(timeIntervalSince1970: lastTakenDate)
-                Text("Last taken:\n\(date.formatted(date: .abbreviated, time: .shortened))")
-                    .font(.title2)
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
+                TimelineView(.periodic(from: .now, by: 60)) { context in
+                    Text(timeAgoString(from: date, currentDate: context.date))
+                        .font(.title2)
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.secondary)
+                }
             } else {
                 Text("No pill recorded yet.")
                     .font(.title2)
@@ -164,6 +166,21 @@ struct ContentView: View {
                     print("Error scheduling test notification: \(error)")
                 }
             }
+        }
+    }
+    
+    private func timeAgoString(from date: Date, currentDate: Date) -> String {
+        let diff = currentDate.timeIntervalSince(date)
+        
+        if diff < 50 * 60 {
+            let minutes = max(0, Int(diff / 60))
+            return "was taken \(minutes) \(minutes == 1 ? "minute" : "minutes") ago"
+        } else if diff < 22 * 3600 {
+            let hours = max(1, Int(round(diff / 3600)))
+            return "was taken \(hours) \(hours == 1 ? "hour" : "hours") ago"
+        } else {
+            let days = max(1, Int(round(diff / 86400)))
+            return "was taken \(days) \(days == 1 ? "day" : "days") ago"
         }
     }
 }
