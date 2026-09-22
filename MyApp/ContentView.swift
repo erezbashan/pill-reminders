@@ -8,6 +8,10 @@ struct ContentView: View {
     // State to show an alert if notifications are disabled
     @State private var showingPermissionAlert = false
     
+    // State for the date picker
+    @State private var showingDatePicker = false
+    @State private var editingDate = Date()
+    
     var body: some View {
         VStack(spacing: 40) {
             Image(systemName: "pills.fill")
@@ -17,10 +21,16 @@ struct ContentView: View {
             if lastTakenDate > 0 {
                 let date = Date(timeIntervalSince1970: lastTakenDate)
                 TimelineView(.periodic(from: .now, by: 60)) { context in
-                    Text(timeAgoString(from: date, currentDate: context.date))
-                        .font(.title2)
-                        .multilineTextAlignment(.center)
-                        .foregroundColor(.secondary)
+                    Button(action: {
+                        editingDate = date
+                        showingDatePicker = true
+                    }) {
+                        Text(timeAgoString(from: date, currentDate: context.date))
+                            .font(.title2)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.secondary)
+                            .underline()
+                    }
                 }
             } else {
                 Text("No pill recorded yet.")
@@ -42,17 +52,6 @@ struct ContentView: View {
                     .shadow(radius: 5)
             }
             .padding(.horizontal, 40)
-            
-            // --- DEBUG SECTION ---
-            Button(action: {
-                scheduleTestReminders()
-            }) {
-                Text("Debug: Test Notifications (5s)")
-                    .font(.subheadline)
-                    .foregroundColor(.red)
-            }
-            .padding(.top, 20)
-            // ---------------------
         }
         .padding()
         .onAppear {
@@ -62,6 +61,27 @@ struct ContentView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("Please enable notifications in Settings so the app can remind you.")
+        }
+        .sheet(isPresented: $showingDatePicker) {
+            NavigationView {
+                VStack {
+                    DatePicker("Time Taken", selection: $editingDate, displayedComponents: [.date, .hourAndMinute])
+                        .datePickerStyle(.graphical)
+                        .padding()
+                    Spacer()
+                }
+                .navigationTitle("Edit Pill Time")
+                .navigationBarItems(
+                    leading: Button("Cancel") {
+                        showingDatePicker = false
+                    },
+                    trailing: Button("Save") {
+                        lastTakenDate = editingDate.timeIntervalSince1970
+                        scheduleReminders()
+                        showingDatePicker = false
+                    }
+                )
+            }
         }
     }
     
@@ -129,41 +149,6 @@ struct ContentView: View {
             center.add(request) { error in
                 if let error = error {
                     print("Error scheduling notification: \(error)")
-                }
-            }
-        }
-    }
-    
-    private func scheduleTestReminders() {
-        let center = UNUserNotificationCenter.current()
-        center.removeAllPendingNotificationRequests()
-        
-        let customSound = UNNotificationSound(named: UNNotificationSoundName(rawValue: "alarm.wav"))
-        
-        // Schedule test reminders starting in 5 seconds, then 10s, 15s
-        for (index, timeOffset) in [5, 10, 15].enumerated() {
-            let content = UNMutableNotificationContent()
-            
-            if index == 0 {
-                content.sound = .default
-                content.title = "Pill Reminder Approaching (TEST)"
-                content.body = "This is a test. Your pill is due soon!"
-            } else if index == 1 {
-                content.sound = customSound
-                content.title = "Time to Take Your Pill! (TEST)"
-                content.body = "Please take your blood thinner now."
-            } else {
-                content.sound = customSound
-                content.title = "OVERDUE: Pill Reminder (TEST)"
-                content.body = "You are late taking your blood thinner!"
-            }
-            
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(timeOffset), repeats: false)
-            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-            
-            center.add(request) { error in
-                if let error = error {
-                    print("Error scheduling test notification: \(error)")
                 }
             }
         }
